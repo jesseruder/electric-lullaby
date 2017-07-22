@@ -209,7 +209,7 @@ export default class App extends React.Component {
           <TextInput
             underlineColorAndroid="#fd8a5e"
             placeholder="USERNAME"
-            placeholderTextColor="#888888"
+            placeholderTextColor="#ffffff"
             style={{height: 60, width: '100%', backgroundColor: '#fd8a5e', paddingLeft: 40, fontWeight: '800', fontSize: 20}}
             onChangeText={(inputUsername) => this.setState({inputUsername})}
             value={this.state.inputUsername}
@@ -217,7 +217,7 @@ export default class App extends React.Component {
           <TextInput
             secureTextEntry
             placeholder="PASSWORD"
-            placeholderTextColor="#888888"
+            placeholderTextColor="#ffffff"
             underlineColorAndroid="#01dddd"
             style={{height: 60, width: '100%', backgroundColor: '#01dddd', paddingLeft: 40, fontWeight: '800', fontSize: 20}}
             onChangeText={(inputPassword) => this.setState({inputPassword})}
