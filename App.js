@@ -357,6 +357,7 @@ export default class App extends React.Component {
       return;
     }
 
+    // todo: calling this._removeImage here isn't right, needs to reset the timer when it does that
     return (
       <View style={{
         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0
