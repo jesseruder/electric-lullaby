@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  Keyboard,
 } from 'react-native';
 
 import Expo, {
@@ -56,6 +57,8 @@ export default class App extends React.Component {
     this.setState({
       inputFollow: '',
     });
+
+    Keyboard.dismiss();
   }
 
   _handleNotification = () => {
@@ -207,6 +210,7 @@ export default class App extends React.Component {
       return (
         <View style={{flex: 1, alignItems: 'center', paddingTop: '25%', backgroundColor: '#FFFF00'}}>
           <TextInput
+            autoFocus
             underlineColorAndroid="#fd8a5e"
             placeholder="USERNAME"
             placeholderTextColor="#ffffff"
