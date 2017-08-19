@@ -13,16 +13,18 @@ import {
   View,
   TextInput,
   Keyboard,
+  Vibration,
 } from 'react-native';
 
 import Expo, {
+  Camera,
   Permissions,
   Constants,
   ImagePicker,
   Notifications,
 } from 'expo';
 
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 //const API_HOST = 'http://b1634808.ngrok.io';
 const API_HOST = 'https://electric-lullaby.herokuapp.com';
@@ -43,6 +45,7 @@ export default class App extends React.Component {
       inputUsername: '',
       inputPassword: '',
       inputFollow: '',
+      cameraDirection: 'front',
     };
 
     this._interval = null;
@@ -155,7 +158,6 @@ export default class App extends React.Component {
 
   render() {
     let { loading, authed, authError, username, imageUrls } = this.state;
-    let hasImage = imageUrls && imageUrls.length;
 
     if (loading) {
       return (
@@ -193,15 +195,8 @@ export default class App extends React.Component {
           </View>
 
           <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', top: 100, bottom: 0, left: 0, right: 0}}>
-            {!hasImage &&
-              <TouchableOpacity onPress={this._takePhoto}>
-                <Ionicons name="md-camera" size={200} color="#01dddd" />
-              </TouchableOpacity>
-            }
-            { this._maybeRenderImage() }
+            { this._renderImageOrCamera() }
           </View>
-
-
 
           { this._maybeRenderUploadingOverlay() }
         </View>
@@ -351,10 +346,37 @@ export default class App extends React.Component {
     }
   }
 
-  _maybeRenderImage = () => {
+  _renderImageOrCamera = () => {
     let { imageUrls } = this.state;
     if (!imageUrls || !imageUrls.length) {
-      return;
+      return (
+        <Camera
+          ref={ref => {
+            this._camera = ref;
+          }}
+          autoFocus
+          type={this.state.cameraDirection}
+          style={{
+            position: 'absolute', top: 0, bottom: 0, left: 0, right: 0
+          }}>
+          <View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            padding: 20,
+            justifyContent: 'space-around',
+          }}>
+            <TouchableOpacity onPress={this._takePhoto}>
+              <MaterialIcons name="camera" size={60} color="#01dddd" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={this._flipCamera}>
+              <MaterialIcons name="switch-camera" size={60} color="#01dddd" />
+            </TouchableOpacity>
+          </View>
+        </Camera>
+      );
     }
 
     // todo: calling this._removeImage here isn't right, needs to reset the timer when it does that
@@ -376,25 +398,23 @@ export default class App extends React.Component {
   }
 
   _takePhoto = async () => {
-    let pickerResult = await ImagePicker.launchCameraAsync({
-      quality: 0.5,
-    });
+    if (!this._camera) {
+      return;
+    }
 
-    this._handleImagePicked(pickerResult);
-  }
+    let uri = await this._camera.takePictureAsync();
 
-  _handleImagePicked = async (pickerResult) => {
+    Vibration.vibrate();
+
     let uploadResponse, uploadResult;
 
     try {
       this.setState({uploading: true});
 
-      if (!pickerResult.cancelled) {
-        uploadResponse = await uploadImageAsync(pickerResult.uri);
-        uploadResult = await uploadResponse.json();
+      uploadResponse = await uploadImageAsync(uri);
+      uploadResult = await uploadResponse.json();
 
-        this._sendImageAsync(uploadResult.location);
-      }
+      this._sendImageAsync(uploadResult.location);
     } catch(e) {
       console.log({uploadResponse});
       console.log({uploadResult});
@@ -403,6 +423,14 @@ export default class App extends React.Component {
     } finally {
       this.setState({uploading: false});
     }
+  }
+
+  _flipCamera = async () => {
+    this.setState(state => {
+      return {
+        cameraDirection: state.cameraDirection === 'front' ? 'back' : 'front',
+      };
+    });
   }
 }
 
