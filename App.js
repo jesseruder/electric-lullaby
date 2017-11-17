@@ -46,6 +46,7 @@ export default class App extends React.Component {
       inputPassword: '',
       inputFollow: '',
       cameraDirection: 'front',
+      cameraPermissionStatus: null,
     };
 
     this._interval = null;
@@ -153,7 +154,21 @@ export default class App extends React.Component {
 
     this.registerForPushNotificationsAsync();
     this.getImagesAsync();
+    this.askForCameraPermissionsAsync();
     Notifications.addListener(this._handleNotification);
+  }
+
+  askForCameraPermissionsAsync = async () => {
+    const { existingStatus } = await Permissions.getAsync(Permissions.CAMERA);
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA);
+      finalStatus = status;
+    }
+
+    this.setState({
+      cameraPermissionStatus: finalStatus,
+    });
   }
 
   render() {
@@ -347,8 +362,14 @@ export default class App extends React.Component {
   }
 
   _renderImageOrCamera = () => {
-    let { imageUrls } = this.state;
+    let { imageUrls, cameraPermissionStatus } = this.state;
     if (!imageUrls || !imageUrls.length) {
+      if (cameraPermissionStatus !== 'granted') {
+        return (
+          <View />
+        );
+      }
+
       return (
         <Camera
           ref={ref => {
